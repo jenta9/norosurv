@@ -28,7 +28,7 @@ NoroSurv <- rename(NoroSurv,
                    "Age" = `Patient Age (months)`,
                    "Symptoms" = `Gastroenteritis Symptoms`,
                    "Sample_type" = `Sample Type`
-                   )
+)
 
 
 # Add column to indicate dataset (NoroSurv or GDPS(WHO))
@@ -360,7 +360,7 @@ NoroSurv <-  NoroSurv %>%
                      CtypeUser %in% GIV ~ "GIV",
                      is.na(CtypeUser) ~ "blank",
                      TRUE ~ "check")) #included to check that any other genogroups 
-                                      #detected or those without fasta file are identified
+#detected or those without fasta file are identified
 NoroSurv$CtypeUser <- as.factor(NoroSurv$CtypeUser)
 NoroSurv$Genogroup <- as.factor(NoroSurv$Genogroup)
 
@@ -440,8 +440,8 @@ NoroSurv_test <- NoroSurv_test %>%
     is.na(CtypeUser) ~ "missing", 
     CtypeUser %notin% valid_Ctypes ~ "invalid",
     TRUE ~ CtypeUser)
-    )
-    
+  )
+
 #paste together CtypeUser_1 and PtypeUser_3 and name it dual_type
 NoroSurv_test <-  NoroSurv_test %>%
   mutate(dual_type = paste0(CtypeUser_1, PtypeUser_3))
@@ -471,8 +471,8 @@ rm(NoroSurv_test)
 NoroSurv <- NoroSurv %>%
   mutate(manual_dualtypes = case_when(
     (grepl("\\[", Comment)) ~ Comment,
-     TRUE ~ "")
-    )
+    TRUE ~ "")
+  )
 
 # make "" NAs
 NoroSurv$manual_dualtypes[NoroSurv$manual_dualtypes == ""] <- NA
@@ -509,6 +509,15 @@ NoroSurv <-  NoroSurv %>%
     Ptype_manual)
   )
 
+# exception GIX.P15 should be GII.P15; correct this
+NoroSurv <-  NoroSurv %>%
+  mutate(Ptype_manual = if_else(
+    Ptype_manual == "GIX.P15",
+    "GII.P15",
+    Ptype_manual)
+  )
+
+
 # check the validity of the manual C and P types
 # list those with invalid Ptype_manual
 invalid_Ptype_manual <- NoroSurv %>%
@@ -518,7 +527,7 @@ invalid_Ptype_manual <- NoroSurv %>%
 # list those with invalid Ctype_manual
 # first correct those with "untypeable" to "untypable"
 NoroSurv$Ctype_manual <- gsub("untypeable", "untypable", 
-                                    NoroSurv$Ctype_manual)
+                              NoroSurv$Ctype_manual)
 invalid_Ctype_manual <- NoroSurv %>%
   filter(Ctype_manual %notin% valid_Ctypes & !is.na(Ctype_manual)) %>%
   .$SampleID
@@ -535,7 +544,7 @@ NoroSurv <- NoroSurv %>%
 
 # change "untypeable" to "untypable"
 NoroSurv$dual_type <- gsub("untypeable", "untypable", 
-                              NoroSurv$dual_type)
+                           NoroSurv$dual_type)
 
 # merge Ctype_manual to CtypeUser column
 NoroSurv <- NoroSurv %>%
@@ -602,7 +611,7 @@ missing_CtypeUser <- NoroSurv %>%
 # GII.4 with no variant name
 GII.4_no_variant <-  NoroSurv %>%
   filter(dual_type %in% c("GII.4[P4]", "GII.4[P31]", "GII.4[P16]", "GII.4[P12]")) %>%
-           .$SampleID
+  .$SampleID
 
 # invalid or missing Genogroup
 invalid_genogroup <- NoroSurv %>%
@@ -630,19 +639,16 @@ df_check_server <- NoroSurv %>%
   filter(SampleID %in% check_on_NoroSurv_server)
 
 
-
-
-#### Filter out WHO dataset
-NoroSurv_filtered <- NoroSurv_filtered %>%
-  filter(dataset == "NoroSurv")
-
-
 ################Next Steps ##################
+
+# filter out WHO samples
+NoroSurv_filtered <- NoroSurv %>%
+  filter(dataset == "NoroSurv")
 
 
 #### overwrite the file below when changes are made
 write.csv(NoroSurv_filtered, 
-          "", 
+          "",  
           row.names = FALSE)
 
 
