@@ -4,8 +4,7 @@ NoroSurv is a global pediatric norovirus strain surveillance network for childre
 The aim of the network is to collect data on the circulating norovirus genotypes in children under 5 years of age across different countries and continents.
 
 ## Data Source:
-Download from NoroSurv.org. 
+Download from NoroSurv.org
 
 ## Run order:
-Download_data_cleaning_norosurv_filter.R 
-NoroSurv_app.R.
+Download_data_cleaning_norosurv_filter.R -> NoroSurv_app.R
