@@ -8,7 +8,7 @@ pacman::p_load("dplyr", "ggplot2", "readxl",
 '%notin%' <- Negate('%in%') 
 
 # setwd()
-NSUR <- read.csv("/scicomp/home-pure/flb8/R_projects/NoroSurv/norosurv/Excel_csv/NoroSurv_for_reports_f.csv")
+NSUR <- read.csv()
 
 
 #Define the top 4 genotypes to highlight on the figure input$genotypes
