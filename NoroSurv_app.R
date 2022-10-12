@@ -8,7 +8,9 @@ pacman::p_load("dplyr", "ggplot2", "readxl",
 '%notin%' <- Negate('%in%') 
 
 # setwd()
-NSUR <- read.csv()
+# source output from "Download_data_cleaning_norosurv_filter.R"
+source('Download_data_cleaning_norosurv_filter.R')
+NSUR <- Norosurv
 
 
 #Define the top 4 genotypes to highlight on the figure input$genotypes
