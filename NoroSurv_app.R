@@ -12,7 +12,6 @@ pacman::p_load("dplyr", "ggplot2", "readxl",
 source('Download_data_cleaning_norosurv_filter.R')
 NSUR <- Norosurv
 
-
 #Define the top 4 genotypes to highlight on the figure input$genotypes
 #first indicate which genotypes should be included in "other categories"
 #create new column specifying
@@ -33,6 +32,7 @@ NSUR <- NSUR %>%
                      CtypeUser == "GII.3"~ "GII.3",
                      CtypeUser == "GII.6" ~"GII.6",
                      TRUE ~ genotype_other))
+
 
 
 ####### map data #########
