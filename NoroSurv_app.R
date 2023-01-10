@@ -4,13 +4,19 @@ pacman::p_load("dplyr", "ggplot2", "readxl",
                "plotly", "tidytext", "rnaturalearth",
                "ggthemes")
 
-# function for not in
-'%notin%' <- Negate('%in%') 
+# create "not in" function
+'%notin%' <- Negate('%in%')
 
-# setwd()
-# source output from "Download_data_cleaning_norosurv_filter.R"
-source('Download_data_cleaning_norosurv_filter.R')
-NSUR <- Norosurv
+#dir.create('fonts')
+# #file.copy("www/25381880192.ttf", "fonts")
+# system('fc-cache -f fonts')
+# #fonts to include
+# #Avenir Next LT
+# #Arial Nova
+# #Sabon Next LT
+
+NSUR <- read.csv("NoroSurv_for_reports_f.csv")
+
 
 #Define the top 4 genotypes to highlight on the figure input$genotypes
 #first indicate which genotypes should be included in "other categories"
@@ -32,7 +38,6 @@ NSUR <- NSUR %>%
                      CtypeUser == "GII.3"~ "GII.3",
                      CtypeUser == "GII.6" ~"GII.6",
                      TRUE ~ genotype_other))
-
 
 
 ####### map data #########
@@ -143,113 +148,255 @@ rare_strains <- NSUR %>%
 
 
 
+
+
+#------------------------------------------
 # User interface ----
-ui <- fluidPage(
-  
-  theme = bs_theme(version = 4, bootswatch = "lumen"),
-  
-  fluidRow(
-    column(12,
-           style = "margin:0px; border-top:30px solid; border-color:#3297C8; padding: 0px 0px 0px 0px;")),
-  
-  fluidRow(
-    column(9, 
-           offset = 0, 
-           style = "font-size: 40px;font-face: bold; font-family: Sabon Next LT; padding: 0px 0px 0px 20px; margin:0px;",
-           span("Noro", style =  "float:left; font-face: bold; color: #112B51"), span("Surv:", style = "color:#3297C8")),
+ui <- 
+  fluidPage(
     
-    column(2, 
-           offset = 1, 
-           div(htmltools::img(src = knitr::image_uri(file.path("Main_page.png")), 
-                              alt = 'Main_page',
-                              style = 'position:absolute; top: 15px; bottom:15px; left:0px; right: 10px; margin: 0px; ',
-                              width= 206,
-                              height= 103)))
-  ),
-  
-  fluidRow(
-    column(12, 
-           offset = 0, 
-           style = "color: #335573; font-size: 22px; font-family: Avenir Next LT; padding: 0px 0px 0px 20px",
-           "A global network for norovirus strain surveillance among children")),
-  
-  fluidRow(
-    column(12, 
-           offset = 0, 
-           style = "color: #7D7D7D; font-size: 12px; font-family: Arial Nova;padding: 12px 0px 12px 20px",
-           span("Update created:"), 
-           span(format(Sys.time(), '%B %d, %Y'), style = "font-style:italic"))),
-  
-  sidebarLayout(
-    position = "left",
-    sidebarPanel(
-      width = 3, offset = 0,
-      selectInput("data_set",
-                  label = "Select data set:",
-                  choices = c("All", unique(NSUR$dataset))),
-      sliderInput(inputId = "date_range", 
-                  label = "Choose Date Range:", 
-                  min = min(as.Date(NSUR$Month_Year_floor)), 
-                  max = max(as.Date(NSUR$Month_Year_floor)),
-                  value=c(as.Date("2015-12-01"), 
-                          max(as.Date(NSUR$Month_Year_floor))),
-                  timeFormat="%b %Y"),
-      sliderInput(inputId = "age_range", 
-                  label = "Choose Age Range:", 
-                  min = min(NSUR$Age), 
-                  max = 71,
-                  value=c(0, 59),
-                  step = 3),
-      selectInput("region", 
-                  label= "Choose region:",
-                  choices = c("All", unique(NSUR$Region_GPDS)),
-                  selected = "All",
-                  multiple = TRUE),
-      selectInput("hemisphere", 
-                  label= "Choose hemisphere:",
-                  choices = c("All", unique(NSUR$Hemisphere)),
-                  selected = "All"),
-      selectInput("countries", 
-                  label= "Choose countries:",
-                  choices = c("All", levels(factor(Country_order))),
-                  selected = "All",
-                  multiple = TRUE),
-      selectInput("age_cat", 
-                  label= "Choose age group:",
-                  choices = c("All", unique(NSUR$Age_cat)),
-                  selected = "All",
-                  multiple = TRUE),
-      selectInput("symptoms",
-                  label= "Select symptom status:",
-                  choices =  c("All", unique(NSUR$Symptoms)),
-                  selected = "Symptomatic"),
-      selectInput("setting",
-                  label = "Select setting:",
-                  choices = c("All", unique(NSUR$Setting)),
-                  selected = "All",
-                  multiple = TRUE)
+    theme = bs_theme(version = 4, bootswatch = "lumen"),
+    
+    fluidRow(
+      column(12,
+             style = "margin:0px; border-top:30px solid; border-color:#3297C8; padding: 0px 0px 0px 0px;")),
+    
+    fluidRow(
+      column(9, 
+             offset = 0, 
+             style = "font-size: 40px;font-face: bold; font-family: Sabon Next LT; padding: 0px 0px 0px 20px; margin:0px;",
+             span("Noro", style =  "float:left; font-face: bold; color: #112B51"), span("Surv:", style = "color:#3297C8")),
       
+      column(2, 
+             offset = 1, 
+             div(htmltools::img(src = knitr::image_uri(file.path("Main_page.png")), 
+                                alt = 'Main_page',
+                                style = 'position:absolute; top: 15px; bottom:15px; left:0px; right: 10px; margin: 0px; ',
+                                width= 206,
+                                height= 103)))
     ),
     
+    fluidRow(
+      column(12, 
+             offset = 0, 
+             style = "color: #335573; font-size: 22px; font-family: Avenir Next LT; padding: 0px 0px 0px 20px",
+             "A global network for norovirus strain surveillance among children")),
     
-    mainPanel(
-      width = 9, offset=0,
-      tabsetPanel(
-        tabPanel('Map', plotlyOutput("map")),
-        tabPanel('Genotypes', br(), plotlyOutput("genotypes")),
-        tabPanel('GII.4', br(), plotlyOutput("gii4")),
-        tabPanel('Dual Types', br(), plotOutput("dualTypes"), height = "auto"),
-        tabPanel('Regional', br(), plotOutput("regional")),
-        tabPanel('By country', br(), plotOutput("country_select")),
-        tabPanel('By Age', br(), plotOutput("age_cat")),
-        tabPanel('Tables', br(), DT::DTOutput("dtable")),
-        tabPanel('About', br(), textOutput("ack"))
-      ))
+    fluidRow(
+      column(12, 
+             offset = 0, 
+             style = "color: #7D7D7D; font-size: 12px; font-family: Arial Nova;padding: 12px 0px 12px 20px",
+             span("Update created:"), 
+             span(format(Sys.time(), '%B %d, %Y'), style = "font-style:italic")
+      )
+    ),
+    
+    sidebarLayout(
+      position = "left",
+      sidebarPanel(
+        width = 3, offset = 0,
+        selectInput("data_set",
+                    label = "Select data set:",
+                    choices = c("All", unique(NSUR$dataset))),
+        sliderInput(inputId = "date_range", 
+                    label = "Choose Date Range:", 
+                    min = min(as.Date(NSUR$Month_Year_floor)), 
+                    max = max(as.Date(NSUR$Month_Year_floor)),
+                    value=c(as.Date("2015-12-01"), 
+                            max(as.Date(NSUR$Month_Year_floor))),
+                    timeFormat="%b %Y"),
+        sliderInput(inputId = "age_range", 
+                    label = "Choose Age Range:", 
+                    min = min(NSUR$Age), 
+                    max = 71,
+                    value=c(0, 59),
+                    step = 3),
+        selectInput("region", 
+                    label= "Choose region:",
+                    choices = c("All", unique(NSUR$Region_GPDS)),
+                    selected = "All",
+                    multiple = TRUE),
+        selectInput("hemisphere", 
+                    label= "Choose hemisphere:",
+                    choices = c("All", unique(NSUR$Hemisphere)),
+                    selected = "All"),
+        selectInput("countries", 
+                    label= "Choose countries:",
+                    choices = c("All", levels(factor(Country_order))),
+                    selected = "All",
+                    multiple = TRUE),
+        selectInput("age_cat", 
+                    label= "Choose age group:",
+                    choices = c("All", unique(NSUR$Age_cat)),
+                    selected = "All",
+                    multiple = TRUE),
+        selectInput("symptoms",
+                    label= "Select symptom status:",
+                    choices =  c("All", unique(NSUR$Symptoms)),
+                    selected = "Symptomatic"),
+        selectInput("setting",
+                    label = "Select setting:",
+                    choices = c("All", unique(NSUR$Setting)),
+                    selected = "All",
+                    multiple = TRUE)
+        
+      ),
+      
+      
+      mainPanel(
+        width = 9, offset=0,
+        tabsetPanel(
+          tabPanel('Dashboard',
+                   br(),
+                   dashboardPage(
+                     dashboardHeader(disable = TRUE),
+                     dashboardSidebar(disable = TRUE),
+                     dashboardBody(
+                       fluidRow(
+                         # Dynamic valueBoxes
+                         valueBoxOutput("seq_ct"),
+                         # valueBoxOutput("country_ct"),
+                         valueBoxOutput("genotype_ct"),
+                         valueBoxOutput("strain_ct"),
+                       ),
+                       fluidRow(
+                         box(
+                           title = "Genogroup Distribution",
+                           width = 4,
+                           background = "light-blue",
+                           solidHeader = TRUE,
+                           plotOutput("genogroup_donut", height = 300)
+                         ),
+                         box(
+                           title = "Top Genotypes",
+                           width = 4,
+                           background = "light-blue",
+                           solidHeader = TRUE,
+                           plotOutput("genotype_bar", height = 300)
+                         ),
+                         box(
+                           title = "Top Strains",
+                           width = 4,
+                           background = "light-blue",
+                           solidHeader = TRUE,
+                           plotOutput("strain_bar", height = 300)
+                         )
+                       )
+                     )
+                   ),
+                   downloadButton("data", "Download Data"),
+                   downloadButton("report", "Download Report")
+          ),
+          
+          tabPanel('About', br(),
+                   fluidPage(
+                     theme = bs_theme(version = 4, bootswatch = "lumen"),
+                     fluidRow(
+                       column(9, 
+                              offset = 0, 
+                              style = "font-size: 40px;font-face: bold; font-family: Sabon Next LT; padding: 0px 0px 0px 20px; margin:0px;",
+                              span("Welcome", style =  "float:left; font-face: bold; color: #112B51")
+                       )
+                     ),
+                     fluidRow(
+                       column(12, 
+                              offset = 0, 
+                              style = "color: #335573; font-size: 22px; font-family: Avenir Next LT; padding: 0px 0px 20px 20px",
+                              span("NoroSurv provides data on global norovirus strain diversity in children younger than 5 years of age, capturing existing and emerging strains over time. Data will inform efforts to develop and adapt norovirus vaccine candidates; it will also aid in the evaluation of future vaccine efficacy by documenting baseline global strain diversity of noroviruses in children."
+                              )
+                       )
+                     ),
+                     fluidRow(
+                       column(9, 
+                              offset = 0, 
+                              style = "font-size: 40px;font-face: bold; font-family: Sabon Next LT; padding: 0px 0px 0px 20px; margin:0px;",
+                              span("Explore the data", style =  "float:left; color: #112B51")
+                       )
+                     ),
+                     fluidRow(
+                       column(12, 
+                              offset = 0, 
+                              style = "color: #335573; font-size: 22px; font-family: Avenir Next LT; font-face: bold; color: #112B51; padding: 0px 0px 20px 20px",
+                              span("Explore the tabs to view the data. Make selections in the sidebar to filter data by date, child age, and geography."
+                              )
+                       )
+                     ),
+                     fluidRow(
+                       column(9, 
+                              offset = 0, 
+                              style = "font-size: 40px;font-face: bold; font-family: Sabon Next LT; padding: 0px 0px 0px 20px; margin:0px;",
+                              span("Participate", style =  "float:left; color: #112B51")
+                       )
+                     ),
+                     fluidRow(
+                       column(12, 
+                              offset = 0, 
+                              style = "color: #335573; font-size: 22px; font-family: Avenir Next LT; font-face: bold; color: #112B51; padding: 0px 0px 20px 20px",
+                              span("Laboratories upload norovirus sequence data to the secure password-protected web-portal. Strains are typed internally according to the latest norovirus classification (PMID: 31483239). Aggregate data are visualized near realtime in this data exploration tool. See also our latest publication (PMID 33900173).")
+                       )
+                     )
+                   )
+          ),
+          
+          tabPanel('Map', plotlyOutput("map")),
+          tabPanel('Genotypes', br(), plotlyOutput("genotypes")),
+          tabPanel('GII.4 strains', br(), plotlyOutput("gii4")),
+          tabPanel('All strains', br(), plotOutput("dualTypes"), height = "auto"),
+          tabPanel('By region', br(), plotOutput("regional")),
+          tabPanel('By country', br(), plotOutput("country_select")),
+          tabPanel('By Age', br(), plotOutput("age_cat")),
+          # tabPanel('Tables', br(), DT::DTOutput("dtable")),
+          tabPanel('Acknowlegements', br(),
+                   fluidPage(
+                     theme = bs_theme(version = 4, bootswatch = "lumen"),
+                     fluidRow(
+                       column(9, 
+                              offset = 0, 
+                              style = "font-size: 40px;font-face: bold; font-family: Sabon Next LT; padding: 0px 0px 0px 20px; margin:0px;",
+                              span("Contributors", style =  "float:left; font-face: bold; color: #112B51")
+                       )
+                     ),
+                     fluidRow(
+                       column(12, 
+                              offset = 0, 
+                              style = "color: #335573; font-size: 22px; font-family: Avenir Next LT; padding: 0px 0px 20px 20px",
+                              span("Jan	Vinjé, Jennifer L.	Cannon,	Joseph	Bonifacio,	Filemon	Bucardo,	Javier	Buesa,	Leesa	Bruggink,	Martin	Chi-Wai	Chan, Tulio	M.	Fumian,	Sidhartha	Giri,	Mark	D.	Gonzalez,	Joanne	Hewitt,	Jih-Hui	Lin,	Janet	Mans,	Christian	Muñoz,	Chao-Yang	Pan,	Xiao-Li	Pang,	Corinna	Pietsch, Mustafiz	Rahman,	Naomi	Sakon,	Rangaraj	Selvarangan,	Hannah	Browne,	and Leslie	Barclay")
+                       )
+                     ),
+                     fluidRow(
+                       column(9, 
+                              offset = 0, 
+                              style = "font-size: 40px;font-face: bold; font-family: Sabon Next LT; padding: 0px 0px 0px 20px; margin:0px;",
+                              span("Acknowledgments", style =  "float:left; font-face: bold; color: #112B51")
+                       )
+                     ),
+                     fluidRow(
+                       column(12, 
+                              offset = 0, 
+                              style = "color: #335573; font-size: 22px; font-family: Avenir Next LT; padding: 0px 0px 20px 20px",
+                              span("We thank the NoroSurv international laboratory teams involved in sample collection, sequence analysis, and reporting, which includes Mary Ann Igoy, C. Eures Iyar Oasin, and Mayan Lumandas at the Research Institute for Tropical Medicine; Noemi Navarro-Lleó at the University of Valencia; Lin-yao Zhang at the Chinese University of Hong Kong; K. Maheswari at Christian Medical College; Margarita Lay at the Universidad de Antofagasta; Gary McAucliffe and Terri Swager at LabPLUS; Dawn Croucher at the Institute of Environmental Science and Research; Shu-Chun Chiu at the Taiwan Centers for Disease Control; Nicola Page at the South Africa National Institute for Communicable Diseases; Thalia Huynh, Tasha Padilla, Christine Morales, and Debra Wadford at the California Department of Public Health; Kanti Pabbaraju at Alberta Precision Laboratory; Mohammad Enayet Hossain at the International Centre for Diarrhoeal Disease Research, Bangladesh; and Ferdaus Hassan, Dithi Banerjee, Chris Harrison, and Mary Moffat at Children’s Mercy Hospitals and Clinics.")
+                       )
+                     ),
+                     fluidRow(
+                       column(12, 
+                              offset = 0, 
+                              style = "color: #335573; font-size: 22px; font-family: Avenir Next LT; padding: 0px 0px 20px 20px",
+                              span("This data exploration tool was created by Jennifer Cannon.")
+                       )
+                     )
+                     
+                   )
+          )
+        )
+      )
+    )
   )
-)
 
 
+# shinyApp(ui, server)
+# 
 
+#------------------------------------------
 # Server logic ----
 server <- function(input, output, session) {
   
@@ -716,7 +863,7 @@ server <- function(input, output, session) {
       geom_bar(stat= "identity") +
       #geom_label(aes(x=total, y=reorder(dual_type, total), label = total), nudge_x = (max_size*0.03), color= "white",label.padding = unit(0.45, "lines"), label.size = NA)+
       #geom_text(aes(x=total, y=reorder(dual_type, total), label = total), nudge_x = (max_size*0.03), color= "darkslategrey")+
-      geom_text(aes(x=total, y=reorder(dual_type, total), label = total), nudge_x = (1 + max_size*0.03), color= "darkslategrey", size=4)+
+      geom_text(aes(x=total, y=reorder(dual_type, total), label = total), nudge_x = (1 + max_size*0.06), color= "darkslategrey", size=4)+
       scale_fill_manual(values = c("GII.4 Sydney[P16]" = "#4C7A99", "GII.4 Sydney[P31]"= "#4C7A99", 
                                    "GII.3[P12]"= "#4C7A99", "GII.2[P16]" = "#4C7A99", "GII.6[P7]" ="#4C7A99", 
                                    "GII.3[P30]"= "#E78AC3", "GII.20[P20]"= "#E78AC3", "GII.13[PNA8]"= "#E78AC3",
@@ -747,25 +894,352 @@ server <- function(input, output, session) {
   }, height = height_var2)
   
   
-  library(DT)
+  # library(DT)
+  # 
+  # output$dtable <- DT::renderDT({
+  #     rval_filters() %>%
+  #         dplyr::select(Month_Year_floor, Country, dual_type, Age, Setting, Symptoms)
+  # })
   
-  output$dtable <- DT::renderDT({
-    rval_filters() %>%
-      dplyr::select(Month_Year_floor, Country, dual_type, Age, Setting, Symptoms)
+  
+  output$seq_ct <- renderValueBox({
+    count <- rval_filters()
+    valueBox(
+      length(count$SampleID), 
+      "Sequences uploaded", 
+      color = "light-blue"
+    )
+  })
+  
+  output$genotype_ct <- renderValueBox({
+    count <- rval_filters() 
+    valueBox(
+      length(unique(count$Ctype4)), 
+      "Genotypes", 
+      color = "light-blue"
+    )
+  })
+  
+  output$strain_ct <- renderValueBox({
+    count <- rval_filters() 
+    valueBox(
+      length(unique(count$dual_type)), 
+      "Strains", 
+      color = "light-blue"
+    )
   })
   
   
-  output$ack <- renderText({
-    "NoroSurv RShiny app is under development. Contact: Jennifer Cannon (flb8@cdc.gov) for more information."
+  output$genogroup_donut <- renderPlot({
+    genogroup <- rval_filters()
+    # total number of sequences
+    total <- length(genogroup$SampleID)
+    #summarize % of each genotype
+    genogroup_summary <- genogroup %>%
+      group_by(Genogroup) %>%
+      summarise(count = n()) %>%
+      mutate(percent.seq = round(count/total * 100, digits = 0)) %>%
+      filter(Genogroup %in% c("GI", "GII"))
+    # Compute percentages
+    genogroup_summary$fraction <- genogroup_summary$count / sum(genogroup_summary$count)
+    
+    # Compute the cumulative percentages (top of each rectangle)
+    genogroup_summary$ymax <- cumsum(genogroup_summary$fraction)
+    
+    # Compute the bottom of each rectangle
+    genogroup_summary$ymin <- c(0, head(genogroup_summary$ymax, n=-1))
+    
+    # Compute label position
+    genogroup_summary$labelPosition <- (genogroup_summary$ymax + genogroup_summary$ymin) / 2
+    
+    # Compute a good label
+    genogroup_summary$label <- paste0(genogroup_summary$percent.seq, "%")
+    
+    
+    # Make the plot
+    plot_donut <-  ggplot(genogroup_summary, aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Genogroup)) +
+      geom_rect() +
+      geom_text(x=3.5, aes(y=labelPosition, label=label), color = "black", size=5, fontface = "bold") + # x here controls label position (inner / outer)
+      scale_fill_brewer(palette=3) +
+      #scale_color_brewer(palette=3) +
+      coord_polar(theta="y", clip = "off") +
+      xlim(c(2, 4)) +
+      theme_void() +
+      theme(
+        text = element_text(family = "Sabon Next LT", face = "bold", size = 12, color = "#112B51"),
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(family = "Sabon Next LT", face = "bold", size = 12)) 
+    # ggtitle("Genogroup distribution")
+    
+    plot_donut
+    
     
   })
   
+  output$genotype_bar <- renderPlot({
+    genotype <- rval_filters()
+    
+    # cal total for percent calculation
+    total <- length(genotype$SampleID)
+    
+    #summarize % of each genotype
+    genotype_summary <- genotype %>%
+      group_by(CtypeUser) %>%
+      summarise(n = n()) %>%
+      mutate(percent.seq = round(n/total * 100, digits = 0)) %>%
+      mutate(rank = dense_rank(dplyr::desc(percent.seq)))
+    
+    top_5 <- genotype_summary %>%
+      filter(rank <= 5) %>%
+      .$CtypeUser
+    
+    genotype_summary <- genotype_summary %>%
+      filter(CtypeUser %in% top_5)
+    
+    max_size <- max(genotype_summary$percent.seq)
+    min_size <- min(genotype_summary$percent.seq)
+    
+    
+    ######
+    
+    plot_genotype_all <- ggplot(genotype_summary, aes(x= percent.seq, y = reorder(CtypeUser, percent.seq), fill = CtypeUser))+
+      geom_bar(stat= "identity",fill = "#4C7A99") +
+      geom_text(aes(x=percent.seq, y=reorder(CtypeUser, percent.seq), label = paste0(percent.seq, "%")),
+                nudge_x = (1 + max_size*0.03), color= "darkslategrey", size=4) +
+      theme_minimal()+
+      theme(
+        axis.title.y=element_blank(),
+        axis.title.x = element_blank(),
+        legend.position = "none",
+        panel.grid = element_blank(),
+        text = element_text(family = "Sabon Next LT", face = "bold", size = 12, color = "#112B51"),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(family = "Sabon Next LT", size = 12, color = "#112B51", face = "bold")
+      ) +
+      scale_x_continuous(expand= c(0,0),limits = c(0, max_size + max_size*0.1)) +
+      labs(x = "Count")  
+    # ggtitle("Top genotypes")
+    
+    plot_genotype_all
+    
+  })
+  
+  output$strain_bar <- renderPlot({
+    
+    sum_all_data_by_dualtype <- rval_filters()
+    
+    # cal total for percent calculation
+    total <- length(sum_all_data_by_dualtype$SampleID)
+    
+    sum_all_data_by_dualtype <- sum_all_data_by_dualtype%>%
+      dplyr::select(dual_type) %>%
+      group_by(dual_type)%>%
+      summarise(n= n()) %>%
+      mutate(percent.seq = round(n/total * 100, digits = 0)) %>%
+      mutate(rank = dense_rank(dplyr::desc(percent.seq)))
+    
+    
+    max_size <- max(sum_all_data_by_dualtype$percent.seq)
+    min_size <- min(sum_all_data_by_dualtype$percent.seq)
+    
+    top_5 <- sum_all_data_by_dualtype %>%
+      filter(rank <= 5) %>%
+      .$dual_type
+    
+    # filter for only those in the top 5
+    sum_all_data_by_dualtype <- sum_all_data_by_dualtype %>%
+      filter(dual_type %in% top_5)
+    
+    
+    ######
+    
+    plot_genotype_all <- ggplot(sum_all_data_by_dualtype, aes(x= percent.seq, y = reorder(dual_type, percent.seq), fill = dual_type))+
+      geom_bar(stat= "identity", fill = "#4C7A99") +
+      geom_text(aes(x=percent.seq, y=reorder(dual_type, percent.seq), label = paste0(percent.seq, "%")),
+                nudge_x = (1 + max_size*0.03), color= "darkslategrey", size=4) +
+      theme_minimal()+
+      theme(
+        axis.title.y=element_blank(),
+        axis.title.x = element_blank(),
+        legend.position = "none",
+        panel.grid = element_blank(),
+        text = element_text(family = "Sabon Next LT", face = "bold", size = 12, color = "#112B51"),
+        axis.text.x = element_blank(),
+        axis.text.y = element_text(family = "Sabon Next LT", size = 12, color = "#112B51", face = "bold")
+      ) +
+      scale_x_continuous(expand= c(0,0),limits = c(0, max_size + max_size*0.1)) +
+      labs(x = "Count")  # + facet_grid(dual_type ~., scales= "free")
+    
+    
+    plot_genotype_all
+    
+  })
+  
+  #     strain_bar <- reactive({
+  #       
+  #       sum_all_data_by_dualtype <- rval_filters() 
+  #       
+  #       # cal total for percent calculation
+  #       total <- length(sum_all_data_by_dualtype$SampleID)
+  #       
+  #       sum_all_data_by_dualtype <- sum_all_data_by_dualtype%>%
+  #         dplyr::select(dual_type) %>%
+  #         group_by(dual_type)%>%
+  #         summarise(n= n()) %>%
+  #         mutate(percent.seq = round(n/total * 100, digits = 0)) %>%
+  #         mutate(rank = dense_rank(dplyr::desc(percent.seq)))
+  #       
+  #       
+  #       max_size <- max(sum_all_data_by_dualtype$percent.seq)
+  #       min_size <- min(sum_all_data_by_dualtype$percent.seq)
+  #       
+  #       top_5 <- sum_all_data_by_dualtype %>%
+  #         filter(rank <= 5) %>%
+  #         .$dual_type
+  #       
+  #       # filter for only those in the top 5
+  #       sum_all_data_by_dualtype <- sum_all_data_by_dualtype %>%
+  #         filter(dual_type %in% top_5)
+  #       
+  #       
+  #       ######
+  #       
+  #       plot_genotype_all <- ggplot(sum_all_data_by_dualtype, aes(x= percent.seq, y = reorder(dual_type, percent.seq), fill = dual_type))+
+  #         geom_bar(stat= "identity", fill = "#4C7A99") +
+  #         geom_text(aes(x=percent.seq, y=reorder(dual_type, percent.seq), label = paste0(percent.seq, "%")),
+  #                   nudge_x = (1 + max_size*0.03), color= "darkslategrey", size=4) +
+  #         theme_minimal()+
+  #         theme(
+  #           axis.title.y=element_blank(),
+  #           axis.title.x = element_blank(),
+  #           legend.position = "none",
+  #           panel.grid = element_blank(),
+  #           text = element_text(family = "Sabon Next LT", face = "bold", size = 12, color = "#112B51"),
+  #           axis.text.x = element_blank(),
+  #           axis.text.y = element_text(family = "Sabon Next LT", size = 12, color = "#112B51", face = "bold")
+  #         ) +
+  #         scale_x_continuous(expand= c(0,0),limits = c(0, max_size + max_size*0.1)) +
+  #         labs(x = "Count")  # + facet_grid(dual_type ~., scales= "free")
+  #       
+  #       
+  #       plot_genotype_all
+  #       
+  #     })
+  # 
+  # renderPlot({
+  #   strain_bar()
+  # })
+  #     
+  #     
+  
+  
+  # output$country_ct <- renderValueBox({
+  #   count <- rval_filters()
+  #   valueBox(
+  #     length(unique(count$Country)),
+  #     "Countries",
+  #     icon = icon("list"),
+  #     color = "light-blue"
+  #   )
+  # })
+  
+  # 
+  #     output$data <- downloadHandler(
+  #       filename = function(){
+  #         paste0("NoroSurv_report", ".csv")
+  #       },
+  #       content = function(file){
+  #         write.csv(rval_filters(), file)
+  #       }
+  #       )
+  
+  # output$report <- downloadHandler(
+  #   # For PDF output, change this to "report.pdf"
+  #   filename = "report.html",
+  #   content = function(file) {
+  #     # Copy the report file to a temporary directory before processing it, in
+  #     # case we don't have write permissions to the current working dir (which
+  #     # can happen when deployed).
+  #     tempReport <- file.path(tempdir(), "NoroSurv_report.Rmd")
+  #     file.copy("report.Rmd", tempReport, overwrite = TRUE)
+  # 
+  #     # Set up parameters to pass to Rmd document
+  #     params <- list(n = input$data_set)
+  # 
+  #     # Knit the document, passing in the `params` list, and eval it in a
+  #     # child of the global environment (this isolates the code in the document
+  #     # from the code in this app).
+  #     rmarkdown::render(tempReport, output_file = file,
+  #                       params = params,
+  #                       envir = new.env(parent = globalenv())
+  #     )
+  #   }
+  # )
+  
+  # output$report <- downloadHandler(
+  #   # For PDF output, change this to "report.pdf"
+  #   filename = "report.html",
+  #   content = function(file) {
+  #     # Copy the report file to a temporary directory before processing it, in
+  #     # case we don't have write permissions to the current working dir (which
+  #     # can happen when deployed).
+  #     tempReport <- file.path(tempdir(), "NoroSurv_report.Rmd")
+  #     file.copy("report.Rmd", tempReport, overwrite = TRUE)
+  #     
+  #     # Set up parameters to pass to Rmd document
+  #     params <- list(
+  #       n = input$data_set,
+  #       plot = strain_bar()
+  #       )
+  #     
+  #     # Knit the document, passing in the `params` list, and eval it in a
+  #     # child of the global environment (this isolates the code in the document
+  #     # from the code in this app).
+  #     rmarkdown::render(tempReport, output_file = file,
+  #                       params = params,
+  #                       envir = new.env(parent = globalenv())
+  #     )
+  #   }
+  # )
+  
+  # output$report <- downloadHandler(
+  #   filename = "report.html",
+  #   content = function(file) {
+  #     # id <- showNotification(
+  #     #   "Rendering report...", 
+  #     #   duration = NULL, 
+  #     #   closeButton = FALSE
+  #     # )
+  #     # on.exit(removeNotification(id), add = TRUE)
+  #     
+  #     rmarkdown::render("NoroSurv_report.Rmd", 
+  #                       output_file = file,
+  #                       params <- list(
+  #                         n= input$age_range
+  #                       ),
+  #                       envir = new.env(),
+  #                       intermediates_dir = tempdir()
+  #                       )
+  #     }
+  #   )
+  
+  # output$report <- downloadHandler(
+  #   filename = "report.html",
+  #   content = function(file) {
+  #     params <- list(
+  #       n = input$data_set)
+  #     src <- normalizePath("NoroSurv_report.Rmd")
+  #     owd <- setwd(tempdir())
+  #     on.exit(setwd(owd))
+  #     file.copy(src, "NoroSurv_report.Rmd", overwrite = TRUE)
+  #     out <- render("NoroSurv_report.Rmd", html_document())
+  #     file.rename(out, file)
+  #   }
+  # )
+  
+  
 }
-
 
 # Run app ----
 shinyApp(ui, server)
-
-
-
-
